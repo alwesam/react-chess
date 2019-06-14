@@ -22,41 +22,41 @@ class App extends Component {
     super(props)
     this.state = {
       board: {
-              "1a": <WhiteRook id="wr1"/>,
-              "1b": <WhiteKnight id="wk1"/>,
-              "1c": <WhiteBishop id="wb1"/>,
-              "1d": <WhiteKing id="wkg1"/>,
-              "1e": <WhiteQueen id="wq1"/>,
-              "1f": <WhiteBishop id="wb2"/>,
-              "1g": <WhiteKnight id="wk2"/>,
-              "1h": <WhiteRook id="wr2"/>,
+              "1a": <WhiteRook className="piece" id="wr1"/>,
+              "1b": <WhiteKnight className="piece" id="wk1"/>,
+              "1c": <WhiteBishop className="piece" id="wb1"/>,
+              "1d": <WhiteKing className="piece" id="wkg1"/>,
+              "1e": <WhiteQueen className="piece" id="wq1"/>,
+              "1f": <WhiteBishop className="piece" id="wb2"/>,
+              "1g": <WhiteKnight className="piece" id="wk2"/>,
+              "1h": <WhiteRook className="piece" id="wr2"/>,
                  
-              "2a": <WhitePawn id="wp1"/>,
-              "2b": <WhitePawn id="wp2"/>,
-              "2c": <WhitePawn id="wp3"/>,
-              "2d": <WhitePawn id="wp4"/>,
-              "2e": <WhitePawn id="wp5"/>,
-              "2f": <WhitePawn id="wp6"/>,
-              "2g": <WhitePawn id="wp7"/>,
-              "2h": <WhitePawn id="wp8"/>,
+              "2a": <WhitePawn className="piece" id="wp1"/>,
+              "2b": <WhitePawn className="piece" id="wp2"/>,
+              "2c": <WhitePawn className="piece" id="wp3"/>,
+              "2d": <WhitePawn className="piece" id="wp4"/>,
+              "2e": <WhitePawn className="piece" id="wp5"/>,
+              "2f": <WhitePawn className="piece" id="wp6"/>,
+              "2g": <WhitePawn className="piece" id="wp7"/>,
+              "2h": <WhitePawn className="piece" id="wp8"/>,
                  
-              "7a": <BlackPawn id="bp1"/>,
-              "7b": <BlackPawn id="bp2"/>,
-              "7c": <BlackPawn id="bp3"/>,
-              "7d": <BlackPawn id="bp4"/>,
-              "7e": <BlackPawn id="bp5"/>,
-              "7f": <BlackPawn id="bp6"/>,
-              "7g": <BlackPawn id="bp7"/>,
-              "7h": <BlackPawn id="bp8"/>,
+              "7a": <BlackPawn className="piece" id="bp1"/>,
+              "7b": <BlackPawn className="piece" id="bp2"/>,
+              "7c": <BlackPawn className="piece" id="bp3"/>,
+              "7d": <BlackPawn className="piece" id="bp4"/>,
+              "7e": <BlackPawn className="piece" id="bp5"/>,
+              "7f": <BlackPawn className="piece" id="bp6"/>,
+              "7g": <BlackPawn className="piece" id="bp7"/>,
+              "7h": <BlackPawn className="piece" id="bp8"/>,
                  
-              "8a": <BlackRook id="br1"/>,
-              "8b": <BlackKnight id="bk1"/>,
-              "8c": <BlackBishop id="bb1"/>,
-              "8d": <BlackKing id="bkg1"/>,
-              "8e": <BlackQueen id="bq1"/>,
-              "8f": <BlackBishop id="bb2"/>,
-              "8g": <BlackKnight id="bk2"/>,
-              "8h": <BlackRook id="br2"/>
+              "8a": <BlackRook className="piece" id="br1"/>,
+              "8b": <BlackKnight className="piece" id="bk1"/>,
+              "8c": <BlackBishop className="piece" id="bb1"/>,
+              "8d": <BlackKing className="piece" id="bkg1"/>,
+              "8e": <BlackQueen className="piece" id="bq1"/>,
+              "8f": <BlackBishop className="piece" id="bb2"/>,
+              "8g": <BlackKnight className="piece" id="bk2"/>,
+              "8h": <BlackRook className="piece" id="br2"/>
              }
     }
   }
@@ -74,13 +74,27 @@ class App extends Component {
 
   onDragOver = (ev) => {
     ev.preventDefault();
+    if (true) { //check conditions (source, destination, piece)
+      ev.target.style.border = "2px solid green"; //move allowed
+    } else {
+      ev.target.style.border = "2px solid red";  //move not allowed
+    }
     ev.stopPropagation();
   };
+
+  onDragLeave = (ev) => {
+    ev.preventDefault();
+    ev.target.style.border = "";
+    ev.stopPropagation();
+  }
 
   onDrop = (ev) => {
     ev.preventDefault();
     var data = ev.dataTransfer.getData("text/html");
-    ev.target.appendChild(document.getElementById(data));
+    ev.target.style.border = "";
+    if (true) { //conditions for allowing this move (source, destination, piece)
+      ev.target.appendChild(document.getElementById(data));
+    }
   };
 
   render() {
@@ -106,13 +120,15 @@ class App extends Component {
         color   = i % 2 == 0 ? yellow : grey; 
       var key = this.getKey(i);
       if (this.state.board[key] === undefined)
-        var element = <div id={key} key={key} style={{backgroundColor: color, height: "100px", width: "100px", float: "left"}} 
+        var element = <div id={key} key={key} className="square-class" style={{backgroundColor: color}} 
                             onDrop={ (e) => this.onDrop(e) }
-                            onDragOver={ (e) => this.onDragOver(e)}></div>;
+                            onDragLeave={ (e) => this.onDragLeave(e) }
+                            onDragOver={ (e) => this.onDragOver(e) }></div>;
       else
-        var element = <div id={key} key={key} style={{backgroundColor: color, height: "100px", width: "100px", float: "left"}} 
+        var element = <div id={key} key={key} className="square-class" style={{backgroundColor: color}} 
                             onDrop={ (e) => this.onDrop(e) }
-                            onDragOver={ (e) => this.onDragOver(e)}>
+                            onDragLeave={ (e) => this.onDragLeave(e) }
+                            onDragOver={ (e) => this.onDragOver(e) }>
                                 <div 
                                   draggable
                                   onDragStart={e => this.onDragStart(e,key)} 
