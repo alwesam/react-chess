@@ -16,47 +16,52 @@ import WhitePawn from './pieces/whitePawn.js';
 
 import './App.css';
 
+//rules
+import isValidMove from './rules.js'
+
 class App extends Component {
 
   constructor(props) {
     super(props)
     this.state = {
+      src:   null,
+      capturedPieces: [],
       board: {
-              "1a": <WhiteRook className="piece" id="wr1"/>,
-              "1b": <WhiteKnight className="piece" id="wk1"/>,
-              "1c": <WhiteBishop className="piece" id="wb1"/>,
-              "1d": <WhiteKing className="piece" id="wkg1"/>,
-              "1e": <WhiteQueen className="piece" id="wq1"/>,
-              "1f": <WhiteBishop className="piece" id="wb2"/>,
-              "1g": <WhiteKnight className="piece" id="wk2"/>,
-              "1h": <WhiteRook className="piece" id="wr2"/>,
+              "1a": "wr1",
+              "1b": "wk1",
+              "1c": "wb1",
+              "1d": "wkg1",
+              "1e": "wq1",
+              "1f": "wb2",
+              "1g": "wk2",
+              "1h": "wr2",
                  
-              "2a": <WhitePawn className="piece" id="wp1"/>,
-              "2b": <WhitePawn className="piece" id="wp2"/>,
-              "2c": <WhitePawn className="piece" id="wp3"/>,
-              "2d": <WhitePawn className="piece" id="wp4"/>,
-              "2e": <WhitePawn className="piece" id="wp5"/>,
-              "2f": <WhitePawn className="piece" id="wp6"/>,
-              "2g": <WhitePawn className="piece" id="wp7"/>,
-              "2h": <WhitePawn className="piece" id="wp8"/>,
+              "2a": "wp1",
+              "2b": "wp2",
+              "2c": "wp3",
+              "2d": "wp4",
+              "2e": "wp5",
+              "2f": "wp6",
+              "2g": "wp7",
+              "2h": "wp8",
                  
-              "7a": <BlackPawn className="piece" id="bp1"/>,
-              "7b": <BlackPawn className="piece" id="bp2"/>,
-              "7c": <BlackPawn className="piece" id="bp3"/>,
-              "7d": <BlackPawn className="piece" id="bp4"/>,
-              "7e": <BlackPawn className="piece" id="bp5"/>,
-              "7f": <BlackPawn className="piece" id="bp6"/>,
-              "7g": <BlackPawn className="piece" id="bp7"/>,
-              "7h": <BlackPawn className="piece" id="bp8"/>,
+              "7a": "bp1",
+              "7b": "bp2",
+              "7c": "bp3",
+              "7d": "bp4",
+              "7e": "bp5",
+              "7f": "bp6",
+              "7g": "bp7",
+              "7h": "bp8",
                  
-              "8a": <BlackRook className="piece" id="br1"/>,
-              "8b": <BlackKnight className="piece" id="bk1"/>,
-              "8c": <BlackBishop className="piece" id="bb1"/>,
-              "8d": <BlackKing className="piece" id="bkg1"/>,
-              "8e": <BlackQueen className="piece" id="bq1"/>,
-              "8f": <BlackBishop className="piece" id="bb2"/>,
-              "8g": <BlackKnight className="piece" id="bk2"/>,
-              "8h": <BlackRook className="piece" id="br2"/>
+              "8a": "br1",
+              "8b": "bk1",
+              "8c": "bb1",
+              "8d": "bkg1",
+              "8e": "bq1",
+              "8f": "bb2",
+              "8g": "bk2",
+              "8h": "br2"
              }
     }
   }
@@ -68,13 +73,18 @@ class App extends Component {
    return fy+fx; 
   }
 
-  onDragStart = (ev, index) => {
+  onDragStart = (ev) => {
     ev.dataTransfer.setData("text/html", ev.target.id);
   };
 
-  onDragOver = (ev) => {
+  onDragOver = (ev,data) => {
     ev.preventDefault();
-    if (true) { //check conditions (source, destination, piece)
+
+    var newBoard = this.state.board
+    var src  = this.getKeyByValue(newBoard,data);
+    var dest = ev.target.id;
+
+    if (isValidMove(this.pieceName(data),src,dest,newBoard)) { //check conditions (source, destination, piece)
       ev.target.style.border = "2px solid green"; //move allowed
     } else {
       ev.target.style.border = "2px solid red";  //move not allowed
@@ -92,10 +102,74 @@ class App extends Component {
     ev.preventDefault();
     var data = ev.dataTransfer.getData("text/html");
     ev.target.style.border = "";
-    if (true) { //conditions for allowing this move (source, destination, piece)
-      ev.target.appendChild(document.getElementById(data));
+
+    var dest     = ev.target.id;
+    var newBoard = this.state.board
+    var src      = this.getKeyByValue(newBoard,data);
+
+    if (isValidMove(this.pieceName(data), src, dest, newBoard)) { //conditions for allowing this move (source, destination, piece)
+      newBoard[src]  = undefined;
+      newBoard[dest] = data;
+      this.setState({ board: newBoard });
     }
   };
+
+  getKeyByValue = (object, value) => {
+    return Object.keys(object).find(key => object[key] === value);
+  }
+
+  pieceName = (id) => {
+    if (id == undefined)
+      return ""
+    else if (id.match(/wp/) != undefined)
+      return "white_pawn";
+    else if (id.match(/bp/) != undefined)
+      return "black_pawn";
+    else if (id.match(/wkg/) != undefined || id.match(/bkg/) != undefined)
+      return "king";
+    else if (id.match(/wk/) != undefined || id.match(/bk/) != undefined)
+      return "knight";
+    else if (id.match(/wr/) != undefined || id.match(/br/) != undefined)
+      return "rook"
+    else if (id.match(/wq/) != undefined || id.match(/bq/) != undefined)
+      return "queen"
+    else if (id.match(/wb/) != undefined || id.match(/bb/) != undefined)
+      return "bishop"
+    else
+      return ""
+  }
+
+  renderPiece = (id) => {
+    if (id == undefined)
+      return ""
+
+    if (id.match(/wp/) != undefined)
+      return <WhitePawn className="piece" id={id}/>;
+    else if (id.match(/wkg/) != undefined)
+      return <WhiteKing className="piece" id={id}/>;
+    else if (id.match(/wk/) != undefined)
+      return <WhiteKnight className="piece" id={id}/>;
+    else if (id.match(/wr/) != undefined)
+      return <WhiteRook className="piece" id={id}/>;
+    else if (id.match(/wq/) != undefined)
+      return <WhiteQueen className="piece" id={id}/>;
+    else if (id.match(/wb/) != undefined)
+      return <WhiteBishop className="piece" id={id}/>;
+    else if (id.match(/bp/) != undefined)
+      return <BlackPawn className="piece" id={id}/>;
+    else if (id.match(/bkg/) != undefined)
+      return <BlackKing className="piece" id={id}/>;
+    else if (id.match(/bk/) != undefined)
+      return <BlackKnight className="piece" id={id}/>;
+    else if (id.match(/br/) != undefined)
+      return <BlackRook className="piece" id={id}/>;
+    else if (id.match(/bq/) != undefined)
+      return <BlackQueen className="piece" id={id}/>;
+    else if (id.match(/bb/) != undefined)
+      return <BlackBishop className="piece" id={id}/>;
+    else
+      return ""
+  }
 
   render() {
 
@@ -106,7 +180,10 @@ class App extends Component {
     var swtch   = true;
     var board   = this.state.board
 
+    console.log(board);
+
     for (var i = 0; i < 64; i++) {
+
       if ( i % 8 == 0  && i != 0) {
         squares.push(<div key={"filler"+i} style={{height: "100px", width: "100px"}}/>);
         swtch = !swtch;
@@ -118,22 +195,23 @@ class App extends Component {
       var color   = i % 2 == 0 ? grey : yellow; 
       if (swtch)
         color   = i % 2 == 0 ? yellow : grey; 
+
       var key = this.getKey(i);
-      if (this.state.board[key] === undefined)
+      if (board[key] === undefined)
         var element = <div id={key} key={key} className="square-class" style={{backgroundColor: color}} 
                             onDrop={ (e) => this.onDrop(e) }
                             onDragLeave={ (e) => this.onDragLeave(e) }
-                            onDragOver={ (e) => this.onDragOver(e) }></div>;
+                            onDragOver={ (e) => this.onDragOver(e,board[key]) }></div>;
       else
         var element = <div id={key} key={key} className="square-class" style={{backgroundColor: color}} 
                             onDrop={ (e) => this.onDrop(e) }
                             onDragLeave={ (e) => this.onDragLeave(e) }
-                            onDragOver={ (e) => this.onDragOver(e) }>
+                            onDragOver={ (e) => this.onDragOver(e,board[key]) }>
                                 <div 
                                   draggable
-                                  onDragStart={e => this.onDragStart(e,key)} 
+                                  onDragStart={e => this.onDragStart(e)} 
                                   >
-                                  {this.state.board[key]}
+                                  {this.renderPiece(board[key])}
                                 </div>
                       </div>;
       squares.push(element);
