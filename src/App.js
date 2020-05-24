@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Cable from 'actioncable';
 
 //pieces
 import BlackKing from './pieces/blackKing.js';
@@ -26,7 +27,8 @@ class App extends Component {
     this.state = {
       src:   null,
       capturedPieces: [],
-      board: {
+      board: JSON.parse(localStorage.getItem('boardLocalStorage')) || 
+            {
               "1a": "wr1",
               "1b": "wk1",
               "1c": "wb1",
@@ -62,9 +64,24 @@ class App extends Component {
               "8f": "bb2",
               "8g": "bk2",
               "8h": "br2"
-             }
+            }
     }
   }
+
+  componentWillMount() {
+    this.createSocket();
+  }
+
+  //new feature of React 16.8
+  //Think of it as componentDidMount, componentDidUpdate, and
+  //componentWillUnmount combined
+  //useEffect() {
+  //  localStorage.setItem('boardLocalStorage', this.state.board)
+  //}
+  //componentDidMount() {
+  //  const board = localStorage.getItem('boardLocalStorage')
+  //  this.setState({ board })
+  //}
 
   getKey = (index) => {
    let obj = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e", 5: "f", 6: "g", 7: "h"} 
@@ -111,6 +128,9 @@ class App extends Component {
       newBoard[src]  = undefined;
       newBoard[dest] = data;
       this.setState({ board: newBoard });
+      localStorage.setItem('boardLocalStorage', JSON.stringify(newBoard))
+      //send it over
+      this.chats.create(newBoard);
     }
   };
 
@@ -171,6 +191,23 @@ class App extends Component {
       return ""
   }
 
+  createSocket = () => {
+    var cable = Cable.createConsumer('ws://localhost:3001/cable');
+    this.chats = cable.subscriptions.create({
+       channel: 'ChessChannel'
+    }, {
+      connected: () => {},
+      received: (board) => {
+        this.setState({board: board['content']})
+      },
+      create: function(chessContent){
+        this.perform('create', {
+          content: chessContent
+        });
+      }
+    });
+  }
+
   render() {
 
     const grey    = "grey";
@@ -179,8 +216,6 @@ class App extends Component {
     var squares = [];
     var swtch   = true;
     var board   = this.state.board
-
-    console.log(board);
 
     for (var i = 0; i < 64; i++) {
 
